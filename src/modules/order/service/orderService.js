@@ -1,5 +1,5 @@
 const pick = require("../../../utils/pick");
-const { getConfigForCheckout } = require("../../globalConfig/service/globalconfig.service");
+const { getConfigForCheckout } = require("../../globalconfig/service/globalconfig.service");
 const Order = require("../model");
 const mongoose = require("mongoose");
 
@@ -21,9 +21,9 @@ const getOrderByUser = async (userId, page, limit, searchQuery) => {
   try {
     let userObjectId = mongoose.Types.ObjectId(userId);
     const length = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
-      const start = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
-      const skip = (start - 1) * length;
-      const sortQuery = { _id: -1 };
+    const start = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    const skip = (start - 1) * length;
+    const sortQuery = { _id: -1 };
     console.log("length parent", page, limit)
     console.log("length", length, start, skip, sortQuery)
 
@@ -124,8 +124,8 @@ const getOrderByUser = async (userId, page, limit, searchQuery) => {
       {
         $match: {
           orderItems: { $exists: true, $not: { $size: 0 } } // Ensure orderItems array is not empty
-      }
-    },
+        }
+      },
       {
         $project: {
           _id: 1,
@@ -141,9 +141,9 @@ const getOrderByUser = async (userId, page, limit, searchQuery) => {
           prescriptionDetails: 1
         }
       },
-      { $sort: sortQuery }, 
-      { $skip: skip }, 
-      { $limit: length } 
+      { $sort: sortQuery },
+      { $skip: skip },
+      { $limit: length }
     ];
 
     if (searchQuery) {
@@ -163,7 +163,7 @@ const getOrderByUser = async (userId, page, limit, searchQuery) => {
     const totalOrders = await Order.countDocuments({
       ...matchQuery
     });
-    console.log("rrr",totalOrders)
+    console.log("rrr", totalOrders)
     const totalPages = Math.ceil(totalOrders / length);
 
     if (orders && orders.length > 0) {
@@ -357,97 +357,111 @@ const getOrderById = async (id) => {
 
 const getAllOrders = async (page = 1, limit = 10, searchQuery = '') => {
   try {
-      // Ensure page and limit are valid numbers, and set defaults if not provided
-      const length = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
-      const start = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
-      const skip = (start - 1) * length;
-      const sortQuery = { _id: -1 };
+    // Ensure page and limit are valid numbers, and set defaults if not provided
+    const length = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
+    const start = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    const skip = (start - 1) * length;
+    const sortQuery = { _id: -1 };
 
-      // Build search query if searchQuery is provided
-      const searchMatch = {};
-      if (searchQuery) {
-          const searchRegex = { $regex: `.*${searchQuery}.*`, $options: 'i' };
-          searchMatch.$or = [
-              { 'userData.name': searchRegex },
-              { 'userData.phoneNo': searchRegex }
-          ];
-      }
-
-      // Aggregation pipeline
-      const pipeline = [
-          { $match: { mode: 'order' } },
-          { $lookup: {
-              from: 'users',
-              localField: 'userId',
-              foreignField: '_id',
-              as: 'userData',
-          }},
-          { $unwind: {
-              path: '$userData',
-              preserveNullAndEmptyArrays: true,
-          }},
-          { $match: searchMatch },
-          { $sort: sortQuery },
-          { $skip: skip },
-          { $limit: length },
-          { $lookup: {
-              from: 'prescriptions',
-              localField: 'prescriptionId',
-              foreignField: '_id',
-              as: 'prescriptionData',
-          }},
-          { $unwind: {
-              path: '$prescriptionData',
-              preserveNullAndEmptyArrays: true,
-          }},
-          { $lookup: {
-              from: 'addresses',
-              localField: 'addressId',
-              foreignField: '_id',
-              as: 'addressData',
-          }},
-          { $unwind: {
-              path: '$addressData',
-              preserveNullAndEmptyArrays: true,
-          }},
-          { $project: {
-              _id: 1,
-              status: 1,
-              mode: 1,
-              userId: 1,
-              addressId: 1,
-              prescriptionId: 1,
-              totalPayment: 1,
-              createdAt: 1,
-              updatedAt: 1,
-              userData: 1,
-              prescriptionData: 1,
-              addressData: 1,
-          }},
+    // Build search query if searchQuery is provided
+    const searchMatch = {};
+    if (searchQuery) {
+      const searchRegex = { $regex: `.*${searchQuery}.*`, $options: 'i' };
+      searchMatch.$or = [
+        { 'userData.name': searchRegex },
+        { 'userData.phoneNo': searchRegex }
       ];
+    }
 
-      // Execute the aggregation pipeline
-      const listResult = await Order.aggregate(pipeline);
-      const totalResults = await Order.countDocuments({ mode: 'order' }); // Adjust as needed to count the correct documents
-      const totalPages = Math.ceil(totalResults / length);
+    // Aggregation pipeline
+    const pipeline = [
+      { $match: { mode: 'order' } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userData',
+        }
+      },
+      {
+        $unwind: {
+          path: '$userData',
+          preserveNullAndEmptyArrays: true,
+        }
+      },
+      { $match: searchMatch },
+      { $sort: sortQuery },
+      { $skip: skip },
+      { $limit: length },
+      {
+        $lookup: {
+          from: 'prescriptions',
+          localField: 'prescriptionId',
+          foreignField: '_id',
+          as: 'prescriptionData',
+        }
+      },
+      {
+        $unwind: {
+          path: '$prescriptionData',
+          preserveNullAndEmptyArrays: true,
+        }
+      },
+      {
+        $lookup: {
+          from: 'addresses',
+          localField: 'addressId',
+          foreignField: '_id',
+          as: 'addressData',
+        }
+      },
+      {
+        $unwind: {
+          path: '$addressData',
+          preserveNullAndEmptyArrays: true,
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          status: 1,
+          mode: 1,
+          userId: 1,
+          addressId: 1,
+          prescriptionId: 1,
+          totalPayment: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          userData: 1,
+          prescriptionData: 1,
+          addressData: 1,
+        }
+      },
+    ];
 
-      // Check if orders are found and return appropriate response
-      if (listResult.length > 0) {
-          return {
-              data: listResult,
-              totalResults,
-              totalPages,
-              page: start,
-              limit: length,
-              status: true,
-              code: 200,
-          };
-      } else {
-          return { data: "Orders not found", status: false, code: 404 };
-      }
+    // Execute the aggregation pipeline
+    const listResult = await Order.aggregate(pipeline);
+    const totalResults = await Order.countDocuments({ mode: 'order' }); // Adjust as needed to count the correct documents
+    const totalPages = Math.ceil(totalResults / length);
+
+    // Check if orders are found and return appropriate response
+    if (listResult.length > 0) {
+      return {
+        data: listResult,
+        totalResults,
+        totalPages,
+        page: start,
+        limit: length,
+        status: true,
+        code: 200,
+      };
+    } else {
+      return { data: "Orders not found", status: false, code: 404 };
+    }
   } catch (error) {
-      // Return error response
-      return { data: error.message, status: false, code: 500 };
+    // Return error response
+    return { data: error.message, status: false, code: 500 };
   }
 };
 
@@ -606,131 +620,131 @@ const getAllOrdersEnquiries = async (page, limit, searchQuery) => {
 
 const getAllUserEnquiries = async (page = 1, limit = 10, userId, searchQuery) => {
   try {
-      let userObjectId = mongoose.Types.ObjectId(userId);
-      const length = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
-      const start = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
-      const skip = (start - 1) * length;
-      const sortQuery = { _id: -1 };
+    let userObjectId = mongoose.Types.ObjectId(userId);
+    const length = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
+    const start = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    const skip = (start - 1) * length;
+    const sortQuery = { _id: -1 };
 
-      // Aggregation pipeline
-      const pipeline = [
-          { $match: { mode: 'enquiry', userId: userObjectId } },
-          { $sort: sortQuery },
-          { $skip: skip },
-          { $limit: length },
-          {
-              $lookup: {
-                  from: 'users',
-                  localField: 'userId',
-                  foreignField: '_id',
-                  as: 'userData',
-              },
-          },
-          {
-              $unwind: {
-                  path: '$userData',
-                  preserveNullAndEmptyArrays: true,
-              },
-          },
-          {
-              $lookup: {
-                  from: 'prescriptions',
-                  localField: 'prescriptionId',
-                  foreignField: '_id',
-                  as: 'prescriptionData',
-              },
-          },
-          {
-              $unwind: {
-                  path: '$prescriptionData',
-                  preserveNullAndEmptyArrays: true,
-              },
-          },
-          {
-              $lookup: {
-                  from: 'addresses',
-                  localField: 'addressId',
-                  foreignField: '_id',
-                  as: 'addressData',
-              },
-          },
-          {
-              $unwind: {
-                  path: '$addressData',
-                  preserveNullAndEmptyArrays: true,
-              },
-          },
-          {
-              $lookup: {
-                  from: 'orderitems',
-                  localField: '_id',
-                  foreignField: 'orderId',
-                  as: 'orderItemData',
-              },
-          },
-          {
-              $project: {
-                  _id: 1,
-                  status: 1,
-                  enquiryStatus: 1,
-                  mode: 1,
-                  durationUnit: 1,
-                  durationOfDosage: 1,
-                  enquiryType: 1,
-                  userId: 1,
-                  addressId: 1,
-                  prescriptionId: 1,
-                  totalPayment: 1,
-                  createdAt: 1,
-                  updatedAt: 1,
-                  userData: 1,
-                  prescriptionData: 1,
-                  addressData: 1,
-                  orderItemData: 1,
-              },
-          },
-      ];
+    // Aggregation pipeline
+    const pipeline = [
+      { $match: { mode: 'enquiry', userId: userObjectId } },
+      { $sort: sortQuery },
+      { $skip: skip },
+      { $limit: length },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userData',
+        },
+      },
+      {
+        $unwind: {
+          path: '$userData',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'prescriptions',
+          localField: 'prescriptionId',
+          foreignField: '_id',
+          as: 'prescriptionData',
+        },
+      },
+      {
+        $unwind: {
+          path: '$prescriptionData',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'addresses',
+          localField: 'addressId',
+          foreignField: '_id',
+          as: 'addressData',
+        },
+      },
+      {
+        $unwind: {
+          path: '$addressData',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'orderitems',
+          localField: '_id',
+          foreignField: 'orderId',
+          as: 'orderItemData',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          status: 1,
+          enquiryStatus: 1,
+          mode: 1,
+          durationUnit: 1,
+          durationOfDosage: 1,
+          enquiryType: 1,
+          userId: 1,
+          addressId: 1,
+          prescriptionId: 1,
+          totalPayment: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          userData: 1,
+          prescriptionData: 1,
+          addressData: 1,
+          orderItemData: 1,
+        },
+      },
+    ];
 
-      // Add search by user name
-      if (searchQuery) {
-        const searchRegex = { $regex: searchQuery, $options: 'i' };
-        const searchEnquiryOrderId = mongoose.Types.ObjectId.isValid(searchQuery) ? mongoose.Types.ObjectId(searchQuery) : null;
+    // Add search by user name
+    if (searchQuery) {
+      const searchRegex = { $regex: searchQuery, $options: 'i' };
+      const searchEnquiryOrderId = mongoose.Types.ObjectId.isValid(searchQuery) ? mongoose.Types.ObjectId(searchQuery) : null;
 
-        pipeline.push({
-            $match: {
-                $or: [
-                    { "userData.name": searchRegex },
-                    { "_id": searchEnquiryOrderId }
-                ],
-            },
-        });
+      pipeline.push({
+        $match: {
+          $or: [
+            { "userData.name": searchRegex },
+            { "_id": searchEnquiryOrderId }
+          ],
+        },
+      });
     }
 
-      const listResult = await Order.aggregate(pipeline);
-      const totalResults = await Order.countDocuments({
-          mode: 'enquiry',
-          userId: userObjectId,
-          ...(searchQuery ? { "userData.name": { $regex: searchQuery, $options: 'i' } } : {})
-      });
-      const totalPages = Math.ceil(totalResults / length);
+    const listResult = await Order.aggregate(pipeline);
+    const totalResults = await Order.countDocuments({
+      mode: 'enquiry',
+      userId: userObjectId,
+      ...(searchQuery ? { "userData.name": { $regex: searchQuery, $options: 'i' } } : {})
+    });
+    const totalPages = Math.ceil(totalResults / length);
 
-      if (listResult.length > 0) {
-          return {
-              data: {
-                  enquiries: listResult,
-                  totalResults,
-                  totalPages,
-                  currentPage: start,
-                  pageSize: length,
-              },
-              status: true,
-              code: 200,
-          };
-      } else {
-          return { data: "Enquiries not found", status: false, code: 404 };
-      }
+    if (listResult.length > 0) {
+      return {
+        data: {
+          enquiries: listResult,
+          totalResults,
+          totalPages,
+          currentPage: start,
+          pageSize: length,
+        },
+        status: true,
+        code: 200,
+      };
+    } else {
+      return { data: "Enquiries not found", status: false, code: 404 };
+    }
   } catch (error) {
-      return { data: error.message, status: false, code: 500 };
+    return { data: error.message, status: false, code: 500 };
   }
 };
 

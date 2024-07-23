@@ -1,6 +1,6 @@
 const pick = require("../../../utils/pick");
 const Cart = require("../../cart/model");
-const { getConfigForCheckout } = require("../../globalConfig/service/globalconfig.service");
+const { getConfigForCheckout } = require("../../globalconfig/service/globalconfig.service");
 const StepperProgress = require("../model");
 const mongoose = require("mongoose");
 

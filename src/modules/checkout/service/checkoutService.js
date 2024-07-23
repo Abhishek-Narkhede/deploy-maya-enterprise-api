@@ -3,7 +3,7 @@ const PublicUrl = "http://localhost:3000";
 const Order = require("../../order/model");
 const OrderItem = require("../../orderItem/model");
 const Product = require("../../products/model");
-const { getConfigForCheckout } = require("../../globalConfig/service/globalconfig.service");
+const { getConfigForCheckout } = require("../../globalconfig/service/globalconfig.service");
 
 const createCheckout = async (req, res) => {
   try {

@@ -5,7 +5,7 @@ const controller = require("../../modules/order/controller/orderController");
 const auth = require("../../middlewares/auth");
 const router = express.Router();
 router.post("/add", validate(validation.add), controller.addOrder);
-router.post("/get-user-orders/:userId",validate(validation.getOrderByUser),controller.getOrderByUser);
+router.post("/get-user-orders/:userId", validate(validation.getOrderByUser), controller.getOrderByUser);
 router.get("/:id", validate(validation.getOrderById), controller.getOrderById);
 
 router.post("/all", validate(validation.allOrders), controller.getAllOrders);
