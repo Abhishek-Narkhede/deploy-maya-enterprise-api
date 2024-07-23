@@ -1,5 +1,5 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const PublicUrl = "http://localhost:3000";
+const PublicUrl = "https://deploy-maya-enterprise-web-five.vercel.app";
 const Order = require("../../order/model");
 const OrderItem = require("../../orderItem/model");
 const Product = require("../../products/model");
