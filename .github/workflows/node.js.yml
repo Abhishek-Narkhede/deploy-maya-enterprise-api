@@ -1,0 +1,90 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and deploy the application
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Build & Deploy
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: ["deploy"] # Will run on push to the "main" branch
+
+jobs:
+  build:
+    runs-on: self-hosted # The type of runner that the job will run on
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          npm install
+
+  create-envfile:
+    runs-on: self-hosted
+    needs: build # Run only after the 'build' job is completed
+
+    steps:
+      - name: Create .env file
+        # Creates an '.env' file with environment variables
+        run: |
+          touch .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          echo "MONGODB_URL=${{ secrets.MONGODB_URL }}" >> .env 
+          echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          echo JWT_ACCESS_EXPIRATION_MINUTES=${{ secrets.JWT_ACCESS_EXPIRATION_MINUTES }} >> .env
+          echo JWT_REFRESH_EXPIRATION_DAYS=${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }} >> .env
+          echo JWT_RESET_PASSWORD_EXPIRATION_MINUTES=${{ secrets.JWT_RESET_PASSWORD_EXPIRATION_MINUTES }} >> .env
+          echo JWT_VERIFY_EMAIL_EXPIRATION_MINUTES=${{ secrets.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES }} >> .env
+          echo REMOTE_BASE_URL=${{ secrets.REMOTE_BASE_URL }} >> .env
+          echo REMOTE_BACKEND_API_URL=${{ secrets.REMOTE_BACKEND_API_URL }} >> .env
+          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
+          echo TOKEN_TRACKER_LENGTH=${{ secrets.TOKEN_TRACKER_LENGTH }} >> .env
+          echo S3ACCESSKEYID=${{ secrets.S3ACCESSKEYID }} >> .env
+          echo "S3ACCESSSECRET=${{ secrets.S3ACCESSSECRET }}" >> .env
+          echo S3REGION=${{ secrets.S3REGION }} >> .env
+          echo S3BUCKET=${{ secrets.S3BUCKET }} >> .env
+          echo REGISTERED_USER_KEY=${{ secrets.REGISTERED_USER_KEY }} >> .env
+          echo DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }} >> .env
+          echo DISCORD_SECRET_KEY=${{ secrets.DISCORD_SECRET_KEY }} >> .env
+          echo ENABLE_EVENTS=${{ secrets.ENABLE_EVENTS }} >> .env
+          echo WEB_PROJECT_PATH=${{ secrets.WEB_PROJECT_PATH }} >> .env
+          echo CONTRACT_FOLDER_PATH=${{ secrets.CONTRACT_FOLDER_PATH }} >> .env
+          echo PRIVATE_KEY=${{ secrets.PRIVATE_KEY }} >> .env
+          echo BSC_PROJECT_KEY=${{ secrets.BSC_PROJECT_KEY }} >> .env
+          echo ADMIN_WALLET=${{ secrets.ADMIN_WALLET }} >> .env
+          echo USDT_CONTRACT_ADDRESS=${{ secrets.USDT_CONTRACT_ADDRESS }} >> .env
+          echo BUSD_CONTRACT_ADDRESS=${{ secrets.BUSD_CONTRACT_ADDRESS }} >> .env
+          echo USDC_CONTRACT_ADDRESS=${{ secrets.USDC_CONTRACT_ADDRESS }} >> .env
+          echo ARTY_CONTRACT_ADDRESS=${{ secrets.ARTY_CONTRACT_ADDRESS }} >> .env
+          echo RPCURL=${{ secrets.RPCURL }} >> .env
+          echo INFURA_PROJECT_ID=${{ secrets.INFURA_PROJECT_ID }} >> .env
+          echo INFURA_API_KEY=${{ secrets.INFURA_API_KEY }} >> .env
+          echo INFURA_API_KEY_SECRET=${{ secrets.INFURA_API_KEY_SECRET }} >> .env
+          echo IFURA_IPFS_API_ENDPOINT=${{ secrets.IFURA_IPFS_API_ENDPOINT }} >> .env
+          echo DISCORD_SECRET_KEY=${{ secrets.DISCORD_SECRET_KEY }} >> .env
+          echo SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }} >> .env
+          echo SENDGRID_FROM=${{ secrets.SENDGRID_FROM }} >> .env
+          echo XSOLLA_MERCHANT_ID=${{ secrets.XSOLLA_MERCHANT_ID }} >> .env
+          echo XSOLLA_PROJECT_ID=${{ secrets.XSOLLA_PROJECT_ID }} >> .env
+          echo XSOLLA_API_KEY=${{ secrets.XSOLLA_API_KEY }} >> .env
+          echo XSOLLA_AUTHOR_EMAIL=${{ secrets.XSOLLA_AUTHOR_EMAIL }} >> .env
+          echo XSOLLA_AUTHOR_ID=${{ secrets.XSOLLA_AUTHOR_ID }} >> .env
+          echo XSOLLA_AUTHOR_NAME=${{ secrets.XSOLLA_AUTHOR_NAME }} >> .env
+          echo XSOLLA_PAY_URL=${{ secrets.XSOLLA_PAY_URL }} >> .env
+          echo EPIC_CLIENT_SECRET=${{ secrets.EPIC_CLIENT_SECRET }} >> .env
+          echo EPIC_CLIENT_ID=${{ secrets.EPIC_CLIENT_ID }} >> .env
+          echo BSC_CHAIN_ID=${{ secrets.BSC_CHAIN_ID }} >> .env
+          
+  deploy:
+    runs-on: self-hosted
+    needs: [build, create-envfile] # Run only after the 'build' and 'create-envfile' job is completed
+
+    steps:
+      - name: Deploy to production
+        # Starts your node js app in 'PM2'
+        run: |
+          node scripts/compile.js
+          pm2 stop ecosystem.config.js
+          pm2 start ecosystem.config.js
+          pm2 save
