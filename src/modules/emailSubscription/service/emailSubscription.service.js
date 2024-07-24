@@ -165,8 +165,8 @@ const updateSubscriptionByUserId = async (id, updateFields) => {
             };
         }
 
-        const updatedEmailSubscription = await EmailSubscription.findOneAndUpdate(
-            { userId:  objectId(id) },
+        const updatedEmailSubscription = await EmailSubscription.updateOne(
+            { userId: objectId(id) },
             updateFields,
             { new: true }
         );
@@ -187,19 +187,42 @@ const updateSubscriptionByUserId = async (id, updateFields) => {
     }
 };
 
+const deleteSubscriptionByUserId = async (id) => {
+    try {
+        const emailSubscriptionRes = await EmailSubscription.findOne({ userId: objectId(id) });
+        if (!emailSubscriptionRes) {
+            return {
+                status: false,
+                code: 404,
+                message: 'Email subscribe not found for the provided user.',
+                data: null,
+            };
+        }
+        const updatedEmailSubscription = await EmailSubscription.deleteOne(
+            { userId: objectId(id) }
+        );
 
-
-
-
-
-
-
+        return {
+            status: true,
+            code: 200,
+            message: 'Email subscribe deleted successfully.',
+            data: updatedEmailSubscription,
+        };
+    } catch (error) {
+        return {
+            status: false,
+            code: 500,
+            message: 'An error occurred while updating the email subscribe.',
+            data: error.message,
+        };
+    }
+};
 
 module.exports = {
     addEmailSubscription,
     getAllSubscriptions,
     getAllUnSubscriber,
     getSubscriptionByUserId,
-    updateSubscriptionByUserId
-   
+    updateSubscriptionByUserId,
+    deleteSubscriptionByUserId
 };

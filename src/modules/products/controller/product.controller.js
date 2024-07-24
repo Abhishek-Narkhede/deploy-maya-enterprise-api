@@ -41,8 +41,8 @@ const addProductController = catchAsync(async (req, res) => {
 });
 const getAllProducts = catchAsync(async (req, res) => {
     try {
-        const { sortIndex, page, limit } = req.body;
-        const productRes = await productService.fetchAllProducts(sortIndex, page, limit);
+        const { sortIndex, page, limit, searchQuery } = req.body;
+        const productRes = await productService.fetchAllProducts(sortIndex, searchQuery, page, limit);
         if (!productRes.status) {
             return sendResponse(res, productRes.code, null, "Products not found");
         }

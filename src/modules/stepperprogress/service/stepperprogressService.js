@@ -104,27 +104,6 @@ const updateStepperProgress = async (userId, body) => {
             totalCartAmount: totalCartAmount,
             cartAmount: cartAmount,
         }
-
-        // if (existingStepperProgress) {
-        //     // console.log(stepperProgress);
-        //     if (existingStepperProgress.cartData.length > 0 && !existingStepperProgress.selectedAddress && !existingStepperProgress.selectedPrescription) {
-        //         console.log("Inside 1st");
-        //         stepperUpdateBody.currentStep = 0;
-        //     }
-        //     else if (existingStepperProgress.cartData.length > 0 && !existingStepperProgress.selectedAddress && existingStepperProgress.selectedPrescription) {
-        //         console.log("Inside 2nd");
-        //         stepperUpdateBody.currentStep = 1;
-        //     }
-        //     else if (existingStepperProgress.cartData.length > 0 && existingStepperProgress.selectedAddress && !existingStepperProgress.selectedPrescription) {
-        //         console.log("Inside 3rd");
-        //         stepperUpdateBody.currentStep = 2;
-        //     }
-        //     else if (existingStepperProgress.cartData.length > 0 && existingStepperProgress.selectedAddress && existingStepperProgress.selectedPrescription) {
-        //         console.log("Inside 4th");
-        //         stepperUpdateBody.currentStep = 3;
-        //     }
-        //     console.log(stepperUpdateBody);
-        // }
         const updatedResponse = await StepperProgress.findByIdAndUpdate(existingStepperProgress._id, stepperUpdateBody, { new: true });
         return { data: updatedResponse, status: true, code: 200, message: "Stepper updated" };
     } catch (error) {
@@ -155,24 +134,23 @@ const userSteppeprProgress = async (userId) => {
                         total_price: { $multiply: ['$productDetails.discountedPrice', '$quantity'] }
                     }
                 },
+                {
+                    $sort: { createdAt: -1 }
+                }
             ]);
             existingStepperProgress.cartData = carts;
             let totalCartAmount = 0;
             let cartAmount = 0;
             const globalConfigData = await getConfigForCheckout();
             if (globalConfigData) {
-                console.log("globalConfigData", globalConfigData);
                 const { deliveryCharges, packagingCharges } = globalConfigData?.config[0];
                 totalCartAmount = carts.reduce((sum, cart) => sum + cart.total_price, 0);
                 cartAmount = totalCartAmount;
-                console.log("charges", deliveryCharges, packagingCharges);
                 totalCartAmount += deliveryCharges || 0;
                 totalCartAmount += packagingCharges || 0;
             }
-            console.log("carts", carts, userObjectId);
             existingStepperProgress.totalCartAmount = totalCartAmount;
             existingStepperProgress.cartAmount = cartAmount;
-            console.log("existingStepperProgress", existingStepperProgress);
             await existingStepperProgress.save();
 
             return { data: existingStepperProgress, status: true, code: 200 };

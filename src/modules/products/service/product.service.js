@@ -36,14 +36,18 @@ const addProductInformation = async (productInfoBody) => {
         return { data: error.message, status: false, code: 500 };
     }
 };
-const fetchAllProducts = async (sortIndex = '', page = 1, limit = 10) => {
+const fetchAllProducts = async (sortIndex = '', searchQuery = '', page = 1, limit = 10) => {
     try {
         let query = {
             isActive: true
         };
 
         if (sortIndex) {
-            query.name = { $regex: sortIndex, $options: 'i' };  // Case-insensitive match
+            query.name = { $regex: `^${sortIndex}`, $options: 'i' };
+        }
+
+        if (searchQuery) {
+            query.name = { $regex: searchQuery, $options: 'i' };
         }
 
         // Calculate the number of documents to skip
@@ -135,7 +139,7 @@ const getProductInformationByProductId = async (id) => {
     }
 };
 
-const fetchProductsByBrandId = async (id, page = 1, limit = 10, sortIndex = '',) => {
+const fetchProductsByBrandId = async (id, page = 1, limit = 10, sortIndex = '') => {
     try {
         console.log("id", id);
         // const product = await Product.find({ brandId: objectId(id) });
@@ -145,7 +149,7 @@ const fetchProductsByBrandId = async (id, page = 1, limit = 10, sortIndex = '',)
         };
 
         if (sortIndex) {
-            query.name = { $regex: sortIndex, $options: 'i' };  // Case-insensitive match
+            query.name = { $regex: `^${sortIndex}`, $options: 'i' };  // Case-insensitive match
         }
 
         // Calculate the number of documents to skip

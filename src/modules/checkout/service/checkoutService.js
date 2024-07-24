@@ -15,7 +15,6 @@ const createCheckout = async (req, res) => {
     const orderType = req.body && req.body.orderType;
     const orderMode = req.body && req.body.mode;
 
-    // Find the order by orderId and userId
     const order = await Order.findOne({ _id: orderId, userId: userId });
 
     if (!order) {
@@ -30,27 +29,22 @@ const createCheckout = async (req, res) => {
         productDetails
       };
     }));
-    // return { code: 201, status: true, data: populatedOrderItems };
-    const lineItems = populatedOrderItems.map((item) => {
-      // Calculate the discounted price, ensuring it does not go below zero
-      // const discountedPrice = Math.max(item.productDetails?.price - item.productDetails?.discountedPrice, 0);
+    const lineItems = populatedOrderItems?.map((item) => {
       return {
         price_data: {
           currency: "inr",
           product_data: {
-            name: item.productDetails.name,
+            name: item?.productDetails?.name,
           },
-          unit_amount: item.productDetails?.discountedPrice * 100,
+          unit_amount: item?.productDetails?.discountedPrice * 100,
         },
-        quantity: item.quantity,
+        quantity: item?.quantity,
       };
     });
 
     const globalConfigData = await getConfigForCheckout();
-    // return { code: 201, status: true, data: globalConfigData };
     const deliveryCharges = globalConfigData?.config[0]?.deliveryCharges * 100 || 0
     const packagingCharges = globalConfigData?.config[0]?.packagingCharges * 100 || 0
-    // Add delivery charges as a line item without quantity
     lineItems.push({
       price_data: {
         currency: "inr",
@@ -62,7 +56,6 @@ const createCheckout = async (req, res) => {
       quantity: 1,
     });
 
-    // Add packaging charges as a line item without quantity
     lineItems.push({
       price_data: {
         currency: "inr",
@@ -74,28 +67,31 @@ const createCheckout = async (req, res) => {
       quantity: 1,
     });
 
-    const sessionParams = {
-      line_items: lineItems,
-      customer_email: customerEmail,
-      metadata: {
-        customer_name: customerName,
+    if (lineItems.length !== 0) {
+      const sessionParams = {
+        line_items: lineItems,
         customer_email: customerEmail,
-        orderId: orderId,
-      },
-      mode: "payment",
-      success_url: `${PublicUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${PublicUrl}/cancel?session_id={CHECKOUT_SESSION_ID}`,
-    };
-    if (orderMode) {
-      sessionParams.metadata.orderMode = orderMode;
+        metadata: {
+          customer_name: customerName,
+          customer_email: customerEmail,
+          orderId: orderId,
+        },
+        mode: "payment",
+        success_url: `${PublicUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${PublicUrl}/cancel?session_id={CHECKOUT_SESSION_ID}`,
+      };
+      if (orderMode) {
+        sessionParams.metadata.orderMode = orderMode;
+      }
+
+      if (orderType) {
+        sessionParams.metadata.orderType = orderType;
+      }
+      const session = await stripe.checkout.sessions.create(sessionParams);
+
+      return { code: 201, status: true, data: { url: session.url } };
     }
 
-    if (orderType) {
-      sessionParams.metadata.orderType = orderType;
-    }
-    const session = await stripe.checkout.sessions.create(sessionParams);
-
-    return { code: 201, status: true, data: { url: session.url } };
   } catch (error) {
     console.error("Error creating Stripe Checkout session:", error);
     return { code: 500, status: false, data: error.message };

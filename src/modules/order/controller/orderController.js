@@ -75,15 +75,15 @@ const getAllOrders = catchAsync(async (req, res) => {
 
   const list = await orderService.getAllOrders(page, limit, searchQuery);
   if (list.status) {
-    sendResponse(res, httpStatus.OK, list, null);
+      sendResponse(res, httpStatus.OK, list, null);
   } else {
-    if (list.code === 400) {
-      sendResponse(res, httpStatus.BAD_REQUEST, null, list.data);
-    } else if (list.code === 500) {
-      sendResponse(res, httpStatus.INTERNAL_SERVER_ERROR, null, list.data);
-    } else {
-      sendResponse(res, httpStatus.BAD_REQUEST, null, list.data);
-    }
+      if (list.code === 400) {
+          sendResponse(res, httpStatus.BAD_REQUEST, null, list.data);
+      } else if (list.code === 500) {
+          sendResponse(res, httpStatus.INTERNAL_SERVER_ERROR, null, list.data);
+      } else {
+          sendResponse(res, httpStatus.BAD_REQUEST, null, list.data);
+      }
   }
 });
 
@@ -106,20 +106,20 @@ const getAllOrdersEnquiries = catchAsync(async (req, res) => {
 });
 
 const getAllUserEnquiries = catchAsync(async (req, res) => {
-  const { page, limit, searchQuery } = req.body;
-  const { userId } = req.params;
+    const { page, limit, searchQuery } = req.body;
+    const { userId } = req.params;
 
-  if (!userId) {
-    return sendResponse(res, httpStatus.BAD_REQUEST, null, "User ID not found");
-  }
+    if (!userId) {
+        return sendResponse(res, httpStatus.BAD_REQUEST, null, "User ID not found");
+    }
 
-  const list = await orderService.getAllUserEnquiries(page, limit, userId, searchQuery);
-  if (list.status) {
-    sendResponse(res, httpStatus.OK, list.data, null);
-  } else {
-    const status = list.code === 400 ? httpStatus.BAD_REQUEST : httpStatus.INTERNAL_SERVER_ERROR;
-    sendResponse(res, status, null, list.data);
-  }
+    const list = await orderService.getAllUserEnquiries(page, limit, userId, searchQuery);
+    if (list.status) {
+        sendResponse(res, httpStatus.OK, list.data, null);
+    } else {
+        const status = list.code === 400 ? httpStatus.BAD_REQUEST : httpStatus.INTERNAL_SERVER_ERROR;
+        sendResponse(res, status, null, list.data);
+    }
 });
 
 
