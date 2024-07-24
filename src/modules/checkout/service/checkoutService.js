@@ -7,7 +7,6 @@ const { getConfigForCheckout } = require("../../globalconfig/service/globalconfi
 
 const createCheckout = async (req, res) => {
   try {
-    // const { items } = req.body;
     const { orderId } = req.params;
     const userId = req.user._id;
     const customerEmail = req.user.email;
@@ -22,13 +21,22 @@ const createCheckout = async (req, res) => {
     }
 
     const orderItems = await OrderItem.find({ orderId: orderId })
-    const populatedOrderItems = await Promise.all(orderItems.map(async (item) => {
-      const productDetails = await Product.findById(item.productId);
-      return {
-        ...item.toObject(),
-        productDetails
-      };
-    }));
+    console.log('orderItems', orderItems);
+    const populatedOrderItems = [];
+    for (const item of orderItems) {
+      try {
+        const productDetails = await Product.findById(item?.productId);
+        if (!productDetails) throw new Error('Product not found');
+        populatedOrderItems.push({
+          ...item.toObject(),
+          productDetails
+        });
+      } catch (error) {
+        console.error(`Error fetching product details for item ${item._id}:`, error.message);
+      }
+    }
+    console.log('populatedOrderItems', populatedOrderItems);
+
     const lineItems = populatedOrderItems?.map((item) => {
       return {
         price_data: {
@@ -41,6 +49,8 @@ const createCheckout = async (req, res) => {
         quantity: item?.quantity,
       };
     });
+
+    console.log('lineItems', lineItems);
 
     const globalConfigData = await getConfigForCheckout();
     const deliveryCharges = globalConfigData?.config[0]?.deliveryCharges * 100 || 0
