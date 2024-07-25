@@ -27,10 +27,12 @@ const createCheckout = async (req, res) => {
       try {
         const productDetails = await Product.findById(item?.productId);
         if (!productDetails) throw new Error('Product not found');
-        populatedOrderItems.push({
-          ...item.toObject(),
-          productDetails
-        });
+        else {
+          populatedOrderItems.push({
+            ...item.toObject(),
+            productDetails
+          });
+        }
       } catch (error) {
         console.error(`Error fetching product details for item ${item._id}:`, error.message);
       }
@@ -97,9 +99,13 @@ const createCheckout = async (req, res) => {
       if (orderType) {
         sessionParams.metadata.orderType = orderType;
       }
-      const session = await stripe.checkout.sessions.create(sessionParams);
-
-      return { code: 201, status: true, data: { url: session.url } };
+      console.log(populatedOrderItems.length, lineItems.length);
+      if (populatedOrderItems.length === lineItems.length - 2) {
+        const session = await stripe.checkout.sessions.create(sessionParams);
+        return { code: 201, status: true, data: { url: session.url } };
+      } else {
+        return { code: 400, status: false, data: 'Error while placing the order' };
+      }
     }
 
   } catch (error) {
