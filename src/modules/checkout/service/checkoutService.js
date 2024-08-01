@@ -22,21 +22,19 @@ const createCheckout = async (req, res) => {
 
     const orderItems = await OrderItem.find({ orderId: orderId })
     console.log('orderItems', orderItems);
-    const populatedOrderItems = [];
-    for (const item of orderItems) {
-      try {
-        const productDetails = await Product.findById(item?.productId);
-        if (!productDetails) throw new Error('Product not found');
-        else {
-          populatedOrderItems.push({
-            ...item.toObject(),
-            productDetails
-          });
-        }
-      } catch (error) {
+    // Fetching product details concurrently
+    const productPromises = orderItems.map(item =>
+      Product.findById(item.productId).then(productDetails => ({
+        ...item.toObject(),
+        productDetails
+      })).catch(error => {
         console.error(`Error fetching product details for item ${item._id}:`, error.message);
-      }
-    }
+        return null;
+      })
+    );
+    console.log("productPromises", productPromises);
+    // Resolved all product promises and filter out null values
+    const populatedOrderItems = (await Promise.all(productPromises)).filter(item => item !== null);
     console.log('populatedOrderItems', populatedOrderItems);
 
     const lineItems = populatedOrderItems?.map((item) => {

@@ -10,7 +10,7 @@ const addEmailSubscription = async (req, emailSubscriptionBody) => {
         const { email, isEmailSubscribed } = emailSubscriptionBody;
 
         if (loggedUserEmail !== email) {
-            return { code: 401, status: false, message: "Please subscribe  with the correct email." };
+            return { code: 401, status: false, message: "Please enter the email associated with your account." };
         }
 
         const user = await User.findOne({ email: email });

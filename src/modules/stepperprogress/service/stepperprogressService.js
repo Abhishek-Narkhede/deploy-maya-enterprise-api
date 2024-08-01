@@ -138,7 +138,6 @@ const userSteppeprProgress = async (userId) => {
                     $sort: { createdAt: -1 }
                 }
             ]);
-            existingStepperProgress.cartData = carts;
             let totalCartAmount = 0;
             let cartAmount = 0;
             const globalConfigData = await getConfigForCheckout();
@@ -149,9 +148,18 @@ const userSteppeprProgress = async (userId) => {
                 totalCartAmount += deliveryCharges || 0;
                 totalCartAmount += packagingCharges || 0;
             }
-            existingStepperProgress.totalCartAmount = totalCartAmount;
-            existingStepperProgress.cartAmount = cartAmount;
-            await existingStepperProgress.save();
+            // existingStepperProgress.cartData = carts;
+            // existingStepperProgress.totalCartAmount = totalCartAmount;
+            // existingStepperProgress.cartAmount = cartAmount;
+            existingStepperProgress = {
+                ...existingStepperProgress.toObject(),
+                cartData: carts,
+                totalCartAmount,
+                cartAmount
+            };
+            // await existingStepperProgress.save();
+            await StepperProgress.findByIdAndUpdate(existingStepperProgress._id, existingStepperProgress, { new: true, runValidators: true });
+
 
             return { data: existingStepperProgress, status: true, code: 200 };
         }
